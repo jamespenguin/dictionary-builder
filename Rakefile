@@ -5,7 +5,7 @@ desc "Build dictionary list of English words"
 task "build-dictionary" do
   e = DictionaryBuilder::English
   f = open("dict", "w")
-  f.puts e.dump_words
+  f.puts e.retrieve_all_words
   f.close
 end
 

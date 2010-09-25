@@ -15,21 +15,6 @@ module DictionaryBuilder
       nil
     end
 
-    def extract_words page
-      words = []
-      page.search("//li").map do | item |
-        word = item.at("a")
-        type = item.at("i")
-        next if type == nil or word == nil
-        type = type.text
-        next if IGNORE_TYPES.include? type
-        words << word.text
-      end
-      words
-    rescue
-      nil
-    end
-
     def is_valid_word? word
       return false if word.include? " "
       return false if word.include? "'"
@@ -40,18 +25,33 @@ module DictionaryBuilder
       true
     end
 
-    def dump_words
+    def extract_words page
       words = []
+      page.search("//li").map do | item |
+        word = item.at("a")
+        type = item.at("i")
+        next if type == nil or word == nil
+        next if IGNORE_TYPES.include? type.text
+        next if not is_valid_word? word.text
+        words << word.text
+      end
+      words
+    rescue
+      nil
+    end
 
+    def retrieve_words_for_lettsr letter
+      url = "http://en.wiktionary.org/wiki/Index:English/#{letter}"
+      page = get_page url
+      extract_words page
+    end
+
+    def retrieve_all_words
+      words = []
       ('a'..'z').to_a.each do | letter |
         puts "---#{letter}---"
-        url = "http://en.wiktionary.org/wiki/Index:English/#{letter}"
-        page = get_page url
-        extract_words(page).each do | word |
-          words << word if is_valid_word? word
-        end
+        words += retrieve_words_for_lettsr letter
       end
-
       words
     end
   end
